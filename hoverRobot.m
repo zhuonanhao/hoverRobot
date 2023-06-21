@@ -12,32 +12,34 @@ classdef hoverRobot
         h0 = 0.060 % Initial height of the robot, [m]
         g = -9.81 % Gravitational acceleration, [m/s^2]
     end
+
     properties  
         tspan
         x0
     end
     
     methods
-        
+        function input = u(~, t)
+            input = sin(t);
+        end
+
         function dxdt = stateSpaceModel(obj,t,x)
             x1 = x(1); % Displacement
             x2 = x(2); % Velocity
 %             hn = obj.m/(obj.rho*pi*obj.r^2)-obj.h0;
 %             delta_h = hn;
 
-            omega = 0.1; % Rotation speed, w [rad/s]
-            theta = t*omega;
+            theta = obj.u(t);
             delta_h = theta/(2*pi)*obj.lambda; % Cylinder height change due to motor rotation, [m]
-            
             
             h = obj.h0 + delta_h;
             dx1dt = x2;
             dx2dt = 1/obj.m*(obj.m*obj.g - obj.mu*x2 - obj.rho*obj.g*pi*obj.r^2*h);
-            dxdt = [dx1dt dx2dt]';
+            dxdt = [dx1dt; dx2dt];
         end
 
         function sol = simulation(obj)
-            sol = ode45(@(t,x) stateSpaceModel(obj,t,x),obj.tspan,obj.x0);
+            sol = ode45(@(t,x) stateSpaceModel(obj,t,x), obj.tspan, obj.x0);
         end
 
         function plotResults(~, time, sol)
